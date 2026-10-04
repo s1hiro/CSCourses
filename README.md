@@ -1,2 +1,2 @@
-# cs172
+# CSCourses
 tracking my work
