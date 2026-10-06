@@ -29,14 +29,27 @@ void printBigBorder() {
         log(repeatOneChar("=", 70), true);
 };
 
+void introText() {
+	printBigBorder();
+        log(repeatOneChar(" ", 24) + "Welcome to S1Delights!", true);
+        printBigBorder();
+}
+
+void charCounter(string text) {
+	int count = 0;
+	for(let i = 0; i < text.length(); i++) { count++ };
+	return count;
+}
+
 int main() {
         for(auto& product : products) {
                 string name = product.first;
                 order.insert({name, 0});
         };
-        printBigBorder();
-        log(repeatOneChar(" ", 24) + "Welcome to S1Delights!", true);
-        printBigBorder();
+
+	introText();
+
+	cout << "h";
 
         cout << endl;
 };
