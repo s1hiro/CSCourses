@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <string>
+#include <format>
 using namespace std;
 
 int guiWidth = 50;
@@ -74,10 +75,6 @@ int main() {
 	string currentItem;
 	int currentAmount;
 	string tempInp;
-        for(auto& product : products) {
-                string name = product.first;
-                order.insert({name, 0});
-        };
 
 	introText();
 
@@ -119,5 +116,69 @@ int main() {
 		count++;
 	}
 
-        cout << endl;
+	printBigBorder();
+	log(centerString("Ok, Thank you for ordering!"), true);
+	printBigBorder();
+	log(centerString("Here is your receipt:"), true);
+
+	double totalExpense = 0;
+
+	for(auto& item : order) {
+	        string name = item.first;
+	        string amount = to_string(item.second);
+
+	        // 1. Build and log the item text
+	        string leftText = name + repeatOneChar(" ", 11 - name.length()) + "x " + amount;
+	        log(leftText);
+
+	        // 2. Calculate and format the total price
+	        double totalCost = stoi(amount) * products[name];
+
+		totalExpense += totalCost;
+
+	        stringstream stream;
+	        stream << fixed << setprecision(2) << totalCost;
+	        string totalPriceOfItem = "$" + stream.str();
+
+	        // 3. Align and log the formatted price string
+	        cout << setw(guiWidth - charCounter(leftText));
+	        log(totalPriceOfItem, true);
+    	}
+
+	double taxAmount = totalExpense * .08;
+
+	stringstream stream;
+
+	stream << fixed << setprecision(2) << taxAmount;
+	string strTaxAmount = "$" + stream.str();
+
+	double tipAmount = 0;
+	string tempInput;
+
+	log("+8% Tax" + repeatOneChar(" ", guiWidth - 7 - strTaxAmount.length()) + strTaxAmount, true);
+	printThinBorder();
+	log("Would you be so kind as to leave a hearty tip for\nthe S1Delights waiter? He has worked incredibly\nhard for this job. (%): ");
+	cin >> tempInput;
+	printThinBorder();
+	if(tempInput == "No" || tempInput == "no" || tempInput == "n" || tempInput == "N") {
+		log("Thank you for considering it.", true);
+	} else {
+		tipAmount = totalExpense * (stod(tempInput) / 100);
+
+		stringstream stream;
+		stream << fixed << setprecision(2) << tipAmount;
+		string strTipAmount = "$" + stream.str();
+
+		log("+ Tip :)" + repeatOneChar(" ", guiWidth - 8 - strTipAmount.length()) + strTipAmount, true);
+		printThinBorder();
+	}
+
+	stream.str("");
+        stream << fixed << setprecision(2) << totalExpense + taxAmount + (tipAmount ? tipAmount : 0);
+        string strTotalExpense = "$" + stream.str();
+
+	log("Total:" + repeatOneChar(" ", guiWidth - 6 - strTotalExpense.length()) + strTotalExpense, true);
+	printBigBorder();
+	log(centerString("Thanks for dining at S1Delights! Hope you return."), true);
+	printBigBorder();
 };
