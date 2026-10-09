@@ -1,0 +1,1 @@
+g++ compFileName.cpp lib/*.cpp -I./lib -o name
