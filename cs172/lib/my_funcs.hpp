@@ -15,6 +15,8 @@
 */
 
 void log(std::string text, size_t width, bool newLine = false);
+void ask(std::string text, size_t width, bool newLine = false);
+std::string wrapText(std::string text, size_t width);
 inline std::string repeatOneChar(std::string output, int num) {
     std::string final = "";
     for(; num > 0 ; num--) {

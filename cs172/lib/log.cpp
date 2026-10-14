@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-// defaults MUST be at the end of func declarations
+#include "my_funcs.hpp"
 
 /**
  * @brief Safely logs and word-wraps text to the console.
@@ -17,47 +17,13 @@
  * - WILL NOT accept a width of 0.
  **/
 void log(std::string text, size_t width, bool newLine = false) { 
+    if (width <= 0) {
+        std::cout << "Please return a width greater than 0! You input: " << width << std::endl;
+        return;
+    }
 
-	if(width <= 0) {
-		std::cout << "Please return a width greater than 0! You input: " << width << std::endl;
-		return;
-	}
+    // Call our extracted helper function to format the string
+    std::string formattedText = wrapText(text, width);
 
-	if (text.length() <= width) {
-		std::cout << text << (newLine ? "\n" : "");
-		return;
-	}
-
-	size_t start = 0;
-	while (start + width < text.length()) {
-		size_t targetIndex = start + width;
-
-		// If it's already a space, swap it to a newline
-		if (text[targetIndex] == ' ') {
-		    text[targetIndex] = '\n';
-		    start = targetIndex + 1;
-		}
-		else {
-		    // Look backward for the nearest space
-		    size_t spaceIndex = targetIndex;
-		    while (spaceIndex > start && text[spaceIndex] != ' ') {
-		        spaceIndex--;
-		    }
-
-		    // If a space was found, break there
-		    if (spaceIndex > start) {
-		        text[spaceIndex] = '\n';
-		        start = spaceIndex + 1;
-		    }
-		    // If NO space was found, the word is longer than the width.
-		    // Force a break at the maximum width to avoid an infinite loop.
-		    else {
-		        text.insert(targetIndex, "\n");
-		        start = targetIndex + 1;
-		    }
-		}
-	}
-
-	std::cout << text << (newLine ? "\n" : "");
-	return;
+    std::cout << formattedText << (newLine ? "\n" : "");
 }
