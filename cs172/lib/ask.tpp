@@ -16,7 +16,7 @@
  * @param width       The maximum character width of the screen.
  * @param answerList  An optional list of allowed choices to restrict input validation. [Default: {}]
  * @param newLine     Appends a trailing newline to the initial prompt if true. [Default: {}]
- * @param intMinimum  The lowest a number answer can be. [Default: 0]
+ * @param numMinimum  The lowest a number answer can be. [Default: 0]
  * 
  * @return T          The validated, type-matching user input.
  * 
@@ -31,7 +31,7 @@ template <typename T>
 T ask(std::string question, size_t width, double numMinimum, std::vector<T> answerList, bool newLine) { 
     if (width <= 0) {
         std::cerr << "Please return a width greater than 0! You input: " << width << std::endl;
-        return T(); 
+        return T();
     }
 
     // Print the question
