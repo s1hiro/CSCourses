@@ -16,14 +16,16 @@
  * @note
  * - WILL NOT accept a width of 0.
  **/
-void log(std::string text, size_t width, bool newLine = false) { 
+int log(std::string text, size_t width, bool newLine) { 
     if (width <= 0) {
         std::cout << "Please return a width greater than 0! You input: " << width << std::endl;
-        return;
+        return 0;
     }
 
     // Call our extracted helper function to format the string
     std::string formattedText = wrapText(text, width);
 
     std::cout << formattedText << (newLine ? "\n" : "");
+
+    return 0;
 }
