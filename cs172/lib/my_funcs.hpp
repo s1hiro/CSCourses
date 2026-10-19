@@ -20,11 +20,11 @@
 int log(std::string text, size_t width, bool newLine = false);
 
 template <typename T>
-T ask(std::string question, size_t width, double numMinimum = 0, std::vector<T> answerList = {}, bool newLine = false);
+T ask(std::string question, size_t width, std::vector<T> answerList = {}, bool newLine = false, double numMinimum = 0);
 
 std::string wrapText(std::string text, size_t width);
 
-inline std::string repeatOneChar(std::string output, int num) {
+inline std::string repeatOneChar(std::string output, size_t num) {
     std::string final = "";
     for(; num > 0 ; num--) {
             final += output;
@@ -48,16 +48,8 @@ inline std::string getCleanTypeName(const std::string& mangledName) {
     return mangledName; 
 }
 
-inline std::string repeatOneChar(std::string output, int num) {
-    std::string final = "";
-    for(; num > 0 ; num--) {
-            final += output;
-    };
-    return final;
-}
-
-inline void printBorder(int width, std::string borderChar) {
-    log(repeatOneChar(borderChar, width), true);
+inline void printBorder(size_t width, std::string borderChar) {
+    log(repeatOneChar(borderChar, width), width, true);
 };
 
 inline std::string centerString(std::string text, int width, std::string emptySpaceChar = " ") {

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <variant>
 #include <algorithm>
 #include <type_traits>
 #include <typeinfo>
@@ -27,8 +28,8 @@
  * @note
  * - WILL NOT accept a screen width of 0 or lower.
  **/
-template <typename T>
-T ask(std::string question, size_t width, double numMinimum, std::vector<T> answerList, bool newLine) { 
+template <typename T, typename... VariantTypes>
+T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0) { 
     if (width <= 0) {
         std::cerr << "Please return a width greater than 0! You input: " << width << std::endl;
         return T();
@@ -68,21 +69,57 @@ T ask(std::string question, size_t width, double numMinimum, std::vector<T> answ
             break; 
         }
 
-        // 5. Value validation: Check if 'response' exists inside 'answerList'
-        if (std::find(answerList.begin(), answerList.end(), response) != answerList.end()) {
-            break; // Found a valid answer! Exit loop.
+        bool foundMatch = false;
+        // 5. Value validation: Use std::visit to see if 'response' matches the active variant type
+        // 5.1. Loop through every variant item inside your answerList vector
+        for (const auto var : answerList) {
+            // 5.2. Open the variant box 'var' using std::visit
+            std::visit([&](auto arg) {
+               //^func to inspect variants & exec code based on it                
+               //[&] scopes all used local vars to this visit's lambda fn()
+
+                // 5.3. Extract the exact datatype name of whatever is currently inside 'arg'
+                using VariantType = std::decay_t<decltype(arg)>;
+                                       //^cleans type names eg; int& -> int
+                                       //decltyp() = "get me this thing's type"
+
+                // 5.4. Case A: Is the type the user entered (T) identical to the type inside the variant?
+                if constexpr (std::is_same_v<T, VariantType>) {
+                    // Since they are the exact same type, compare them directly!
+                    if (response == arg) {
+                        foundMatch = true;
+                    }
+                } 
+
+                // 5.5. Case B: Did the user type a string, but the variant holds an integer?
+                else if constexpr (std::is_same_v<T, std::string> && std::is_same_v<VariantType, int>) {
+                    // Convert the integer 'arg' to a string so they can be safely compared!
+                    if (response == std::to_string(arg)) {
+                        foundMatch = true;
+                    }
+                }
+            }, var); // End of std::visit
+
+            // 5.6. If we found a match, stop looking and break out of the vector loop
+            if (foundMatch) break;
         }
+
+        if (foundMatch) break; // Exits the 'while(true)' loop because a valid answer was found!
+        
 
         std::cin.ignore(10000, '\n');
 
-        // 6. Build the error string cleanly to pass to log() safely as a unified string
+        // 6. Build the error string cleanly by extracting values from variants using std::visit
         std::string errorMsg = "Please input one of these answers! ";
         for (size_t i = 0; i < answerList.size(); ++i) {
-            if constexpr (std::is_same_v<T, std::string>) {
-                errorMsg += answerList[i];
-            } else {
-                errorMsg += std::to_string(answerList[i]); // Safeguard against non-string types
-            }
+            std::visit([&errorMsg](auto&& arg) {
+                using VariantType = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<VariantType, std::string>) {
+                    errorMsg += arg;
+                } else {
+                    errorMsg += std::to_string(arg); // Convert int, double, etc. to string safely
+                }
+            }, answerList[i]);
             
             if (i < answerList.size() - 1) {
                 errorMsg += ", ";

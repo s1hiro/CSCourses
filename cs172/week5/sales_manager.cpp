@@ -19,9 +19,9 @@ int main() {
     intro();
 
     do {
-        action = ask<string>("Please type one of the following!\n(1)Record Sales\n(2)View sales report\n(3)Exit", width, 0, actions);
-    } while ( action != "Exit");
+        action = ask<string>("Please type one of the following!\n(1)Record Sales\n(2)View sales report\n(3)Exit\n", width, actions);
+    } while ( action != "Exit" && action != "3");
 
-    log("Thanks for using S1Sales.", width);
+    log("Thanks for using S1Sales.", width, true);
     return 0;
 }

@@ -1,3 +1,6 @@
 g++ compFileName.cpp lib/*.cpp -I./lib -o name
 lib/*.cpp lets compiler know to include references to library functions (defined in my_funcs.cpp) inside the .exe
 -I./lib means when you do #include ... inside a file, to check ./"name" first for a header that is mentioned
+
+inside a weekX file:
+g++ x ../lib/*.cpp -I../lib -o name
