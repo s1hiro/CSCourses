@@ -48,4 +48,21 @@ inline std::string getCleanTypeName(const std::string& mangledName) {
     return mangledName; 
 }
 
+inline std::string repeatOneChar(std::string output, int num) {
+    std::string final = "";
+    for(; num > 0 ; num--) {
+            final += output;
+    };
+    return final;
+}
+
+inline void printBorder(int width, std::string borderChar) {
+    log(repeatOneChar(borderChar, width), true);
+};
+
+inline std::string centerString(std::string text, int width, std::string emptySpaceChar = " ") {
+	std::string spacing = repeatOneChar(emptySpaceChar, (width - text.length()) / 2);
+	return spacing + text + spacing;
+}
+
 #include "./ask.tpp"
