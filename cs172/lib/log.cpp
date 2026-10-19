@@ -8,7 +8,7 @@
  * Replaces clunky 'std::cout' streams with a clean, automatic wrapper.
  * 
  * @param text  The string content you want to output.
- * @param width The maximum character width of the screen.
+ * @param width The maximum character width of the screen. [Default: 80]
  * @param newLine Appends a trailing newline if true. [Default: false]
  * 
  * @note 
@@ -16,7 +16,7 @@
  * @note
  * - WILL NOT accept a width of 0.
  **/
-int log(std::string text, size_t width, bool newLine) { 
+int log(std::string text, bool newLine, size_t width = 80) { 
     if (width <= 0) {
         std::cout << "Please return a width greater than 0! You input: " << width << std::endl;
         return 0;

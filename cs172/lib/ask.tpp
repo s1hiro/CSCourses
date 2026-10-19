@@ -29,7 +29,13 @@
  * - WILL NOT accept a screen width of 0 or lower.
  **/
 template <typename T, typename... VariantTypes>
-T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0) { 
+T ask(
+    std::string question, 
+    size_t width, 
+    std::vector<std::variant<VariantTypes...>> answerList, 
+    bool newLine, 
+    double numMinimum
+) { 
     if (width <= 0) {
         std::cerr << "Please return a width greater than 0! You input: " << width << std::endl;
         return T();
@@ -131,4 +137,10 @@ T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes.
     }
 
     return response;
+}
+
+//Lightweight fallback
+template <typename T>
+T ask(std::string question, size_t width, bool newLine, double numMinimum) {
+    return ask<T, std::string>(question, width, std::vector<std::variant<std::string>>{}, newLine, numMinimum);
 }

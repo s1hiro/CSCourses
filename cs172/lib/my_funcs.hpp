@@ -3,6 +3,8 @@
 #include <vector>
 #include <cxxabi.h>
 #include <cstdlib>
+#include <filesystem>
+#include <variant>
 
 /*
     Note:
@@ -17,10 +19,21 @@
         void log() defined L17, but logic stored in lib/log.cpp. 
 */
 
-int log(std::string text, size_t width, bool newLine = false);
+template <typename T>
+void writeFile(const std::filesystem::path target_dir, const T content);
+
+int log(std::string text, bool newLine = false, size_t width = 80);
 
 template <typename T>
-T ask(std::string question, size_t width, std::vector<T> answerList = {}, bool newLine = false, double numMinimum = 0);
+T ask(std::string question, size_t width, bool newLine = false, double numMinimum = 0) {
+    return ask<T, std::string>(question, width, std::vector<std::variant<std::string>>{}, newLine, numMinimum);
+} 
+// this is for when you do not pass in a answerList - the reason is because you cannot set defaults in param 
+// templates, so we have to enforce it here. when you do pass in an answer list, it only matches the fn() 
+// signature of the one below, so it bypasses the one above.
+
+template <typename T, typename... VariantTypes>
+T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0);
 
 std::string wrapText(std::string text, size_t width);
 
@@ -58,3 +71,4 @@ inline std::string centerString(std::string text, int width, std::string emptySp
 }
 
 #include "./ask.tpp"
+#include "./writeFile.tpp"
