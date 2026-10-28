@@ -17,6 +17,11 @@ void writeFile(const std::filesystem::path target_dir, const T content) {
     std::ofstream outfile(file_path, std::ios::app); 
     
     if (outfile.is_open()) {
+        if(content == "") {
+            outfile.clear();
+            log("Successfully cleared " + file_path.string(), true);
+            return;
+        }
         // Write the generic content, then append a newline character
         outfile << content << "\n"; 
         outfile.close();

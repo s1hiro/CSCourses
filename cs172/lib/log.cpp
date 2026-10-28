@@ -16,9 +16,10 @@
  * @note
  * - WILL NOT accept a width of 0.
  **/
-int log(std::string text, bool newLine, size_t width = 80) { 
+int log(std::string text, bool newLine, size_t width) { 
     if (width <= 0) {
         std::cout << "Please return a width greater than 0! You input: " << width << std::endl;
+        std::cout << "Your attempted string: " + text << std::endl;
         return 0;
     }
 

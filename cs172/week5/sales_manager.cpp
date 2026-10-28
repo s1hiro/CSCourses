@@ -10,13 +10,13 @@ size_t width = 80;
 
 void intro() {
     printBorder(width, "=");
-    log(centerString("Welcome to S1Sales!", width), width, true);
+    log(centerString("Welcome to S1Sales!", width), true, width);
     printBorder(width, "=");
 }
 
 int main() {
     std::filesystem::path path = std::filesystem::current_path();
-    vector<variant<string,  int>> actions = {"1", "2", "3", "Record Sales", "View sales report", "Exit"};
+    vector<variant<string, int>> actions = {"1", "2", "3", "Record Sales", "View sales report", "Exit"};
     string action;
     intro();
 
@@ -34,6 +34,8 @@ int main() {
             }
 
             writeFile(path, content);
+            log("Sales successfully recorded!");
+            continue;
         }
 
         if(action == "2" || action == "View sales report") {
@@ -42,7 +44,7 @@ int main() {
 
     } while ( action != "Exit" && action != "3");
 
-    log("Thanks for using S1Sales.", width, true);
+    log("Thanks for using S1Sales.", true, width);
     writeFile(path, "");
     return 0;
 }

@@ -42,7 +42,7 @@ T ask(
     }
 
     // Print the question
-    log(question, width, newLine);
+    log(question, newLine, width);
 
     T response;
     while (true) {
@@ -137,10 +137,4 @@ T ask(
     }
 
     return response;
-}
-
-//Lightweight fallback
-template <typename T>
-T ask(std::string question, size_t width, bool newLine, double numMinimum) {
-    return ask<T, std::string>(question, width, std::vector<std::variant<std::string>>{}, newLine, numMinimum);
 }

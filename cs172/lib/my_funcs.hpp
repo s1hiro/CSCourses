@@ -24,16 +24,15 @@ void writeFile(const std::filesystem::path target_dir, const T content);
 
 int log(std::string text, bool newLine = false, size_t width = 80);
 
+// This overload is the general one that accepts a validated answer list.
+template <typename T, typename... VariantTypes>
+T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0);
+
+// This is the lightweight fallback used when there is no answerList to validate.
 template <typename T>
 T ask(std::string question, size_t width, bool newLine = false, double numMinimum = 0) {
     return ask<T, std::string>(question, width, std::vector<std::variant<std::string>>{}, newLine, numMinimum);
-} 
-// this is for when you do not pass in a answerList - the reason is because you cannot set defaults in param 
-// templates, so we have to enforce it here. when you do pass in an answer list, it only matches the fn() 
-// signature of the one below, so it bypasses the one above.
-
-template <typename T, typename... VariantTypes>
-T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0);
+}
 
 std::string wrapText(std::string text, size_t width);
 
@@ -62,7 +61,7 @@ inline std::string getCleanTypeName(const std::string& mangledName) {
 }
 
 inline void printBorder(size_t width, std::string borderChar) {
-    log(repeatOneChar(borderChar, width), width, true);
+    log(repeatOneChar(borderChar, width), true, width);
 };
 
 inline std::string centerString(std::string text, int width, std::string emptySpaceChar = " ") {
