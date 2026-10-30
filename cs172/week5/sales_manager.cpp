@@ -30,11 +30,11 @@ int main() {
             log("Enter transaction amounts:", true);
 
             for(; numOfTransactions > 0; numOfTransactions--) {
-                content += to_string(ask<int>("\n$", width));
+                content += to_string(ask<int>("\n$", width)) + "\n";
             }
 
             writeFile(path, content);
-            log("Sales successfully recorded!");
+            log("Sales successfully recorded!", true);
             continue;
         }
 
