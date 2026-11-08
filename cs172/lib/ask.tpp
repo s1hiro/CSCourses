@@ -78,7 +78,7 @@ T ask(
         bool foundMatch = false;
         // 5. Value validation: Use std::visit to see if 'response' matches the active variant type
         // 5.1. Loop through every variant item inside your answerList vector
-        for (const auto var : answerList) {
+        for (const auto& var : answerList) {
             // 5.2. Open the variant box 'var' using std::visit
             std::visit([&](auto arg) {
                //^func to inspect variants & exec code based on it                

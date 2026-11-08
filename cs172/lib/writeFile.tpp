@@ -8,7 +8,7 @@
 template <typename T>
 void writeFile(const std::filesystem::path target_dir, const T content) {
     if (!std::filesystem::exists(target_dir)) {
-        std::cerr << "Error: The folder " << target_dir << " does not exist.\n";
+        std::cerr << "Error: The file " << target_dir << " does not exist.\n";
         return;
     }
 
@@ -29,7 +29,7 @@ void writeFile(const std::filesystem::path target_dir, const T content) {
 
     if (outfile.is_open()) {
         // Write the generic content, then append a newline character
-        outfile << content << "\n";
+        outfile << content;
         outfile.close();
         log("Successfully wrote data to: " + file_path.string(), true);
     } else {

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <variant>
+#include <format>
 
 /*
     Note:
@@ -18,6 +19,9 @@
     Example:
         void log() defined L17, but logic stored in lib/log.cpp. 
 */
+
+template <typename T>
+std::vector<std::string> separateBy(std::vector<T> inpList);
 
 template <typename T>
 void writeFile(const std::filesystem::path target_dir, const T content);
@@ -71,3 +75,4 @@ inline std::string centerString(std::string text, int width, std::string emptySp
 
 #include "./ask.tpp"
 #include "./writeFile.tpp"
+#include "./separateBy.tpp"

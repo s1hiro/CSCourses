@@ -3,4 +3,7 @@ lib/*.cpp lets compiler know to include references to library functions (defined
 -I./lib means when you do #include ... inside a file, to check ./"name" first for a header that is mentioned
 
 inside a weekX file:
-g++ x ../lib/*.cpp -I../lib -o name
+g++ -std=c++20 -Wall -Wextra x ../lib/*.cpp -I../lib -o name
+
+-Wall <- Warnings All
+-Wextra <- Warnings Extra
