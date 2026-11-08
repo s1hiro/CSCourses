@@ -37,13 +37,18 @@ int main() {
             writeFile(path, content);
             log("Sales successfully recorded!", true);
             continue;
-        }
-
+        } 
+        
         if(action == "2" || action == "View sales report") {
             vector<double> sales = {};
             ifstream salesFile(path / "output.txt");
             string line;
             size_t count = 0;
+
+            if(salesFile.peek() == EOF) {
+                log("There are no sales logged.", true);
+                continue;
+            }
 
             while(getline(salesFile, line)) {
                 count++;
@@ -59,9 +64,11 @@ int main() {
             string totalStr = format("{:.2f}", total);
             string averageStr = format("{:.2f}", total / count);
 
+            log("Number of sales: " + count, true);
             log("Total Sales: $" + totalStr, true);
             log("Average Sale: $" + averageStr, true);
         }
+
 
     } while ( action != "Exit" && action != "3");
 
