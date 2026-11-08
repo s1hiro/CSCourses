@@ -31,7 +31,7 @@ int main() {
             log("Enter transaction amounts:", true);
 
             for(; numOfTransactions > 0; numOfTransactions--) {
-                content += to_string(ask<double>("\n$", width)) + "\n";
+                content += to_string(ask<double>("$", width)) + "\n";
             }
 
             writeFile(path, content);
