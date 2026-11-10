@@ -48,6 +48,13 @@ T ask(
     while (true) {
         // 1. Try to read the user input into type T
         if constexpr (std::is_same_v<T, std::string>) {
+            //T must be string because otherwise cpp
+            //can't handle int response typing for you
+
+            //getline(cin >> ws, arg2) == start at the 
+            //next WhiteSpace or newline from the pre-
+            //existing buffer then take cin & save it 
+            //to arg2 
             std::getline(std::cin >> std::ws, response);
         } else {
             std::cin >> response;
