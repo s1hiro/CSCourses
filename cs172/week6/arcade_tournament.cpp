@@ -49,10 +49,20 @@ int main() {
             announceScore(players[i].first, players[i].second);
         }
 
+        //sort(arg1, arg2) tells sort what range of what 
+        //vector/list to sort
         sort(players.begin(), players.end(), 
         [](const auto& player1, const auto& player2) {
             return player1.second > player2.second;
         });
+
+        //[](args)
+        //is a lambda function -- like () => {} in js.
+        //this is how sort should sort; you provide logic
+
+        //BUT, args must be defined explicitly and how 
+        //you plan to use it - whether by reference,
+        //or by copy
 
         if(
             players[0].second == players[1].second ||
