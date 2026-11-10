@@ -47,7 +47,11 @@ T ask(
     T response;
     while (true) {
         // 1. Try to read the user input into type T
-        std::cin >> response;
+        if constexpr (std::is_same_v<T, std::string>) {
+            std::getline(std::cin >> std::ws, response);
+        } else {
+            std::cin >> response;
+        }
 
         // 2. Check if the type reading failed (e.g., text entered for an int)
         if (std::cin.fail()) {
@@ -113,7 +117,9 @@ T ask(
         if (foundMatch) break; // Exits the 'while(true)' loop because a valid answer was found!
         
 
-        std::cin.ignore(10000, '\n');
+        if constexpr (!std::is_same_v<T, std::string>) {
+            std::cin.ignore(10000, '\n');
+        }
 
         // 6. Build the error string cleanly by extracting values from variants using std::visit
         std::string errorMsg = "Please input one of these answers! ";
