@@ -21,7 +21,7 @@
 */
 
 template <typename T>
-std::vector<std::string> separateBy(std::vector<T> inpList);
+std::string separateBy(const std::vector<T>& inpList, const std::string& separator);
 
 template <typename T>
 void writeFile(const std::filesystem::path target_dir, const T content);

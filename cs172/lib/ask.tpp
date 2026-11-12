@@ -2,9 +2,9 @@
 #include <string>
 #include <vector>
 #include <variant>
-#include <algorithm>
 #include <type_traits>
 #include <typeinfo>
+#include <format>
 #include "my_funcs.hpp"
 
 /**
@@ -129,22 +129,13 @@ T ask(
         }
 
         // 6. Build the error string cleanly by extracting values from variants using std::visit
-        std::string errorMsg = "Please input one of these answers! ";
-        for (size_t i = 0; i < answerList.size(); ++i) {
-            std::visit([&errorMsg](auto&& arg) {
-                using VariantType = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<VariantType, std::string>) {
-                    errorMsg += arg;
-                } else {
-                    errorMsg += std::to_string(arg); // Convert int, double, etc. to string safely
-                }
-            }, answerList[i]);
-            
-            if (i < answerList.size() - 1) {
-                errorMsg += ", ";
-            }
+        std::vector<std::string> formattedAnswers;
+        for (const auto& answer : answerList) {
+            formattedAnswers.push_back(std::visit([](const auto& value) {
+                return std::format("{}", value);
+            }, answer));
         }
-        errorMsg += ": ";
+        std::string errorMsg = "Please input one of these answers! " + separateBy(formattedAnswers, ", ") + ": ";
 
         log(errorMsg, false, width);
     }

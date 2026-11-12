@@ -24,7 +24,7 @@ std::string separateBy(const std::vector<T>& inpList, const std::string& separat
 
     for (size_t i = 0; i < inpList.size(); ++i) {
         separatedText += std::format("{}", inpList[i]);
-        if (i + 1 < inpList.size()) separatedText += separator + " ";
+        if (i + 1 < inpList.size()) separatedText += separator;
     }
 
     return separatedText;
