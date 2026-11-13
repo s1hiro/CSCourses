@@ -14,6 +14,7 @@ namespace ask_detail {
     template <typename Bound>
     bool isUnlimited(Bound bound) {
         if constexpr (std::is_same_v<std::decay_t<Bound>, bool>) {
+            // A false bool means no limit; true is not a numeric bound.
             if (bound) {
                 throw std::invalid_argument("Boolean numeric bounds must be false.");
             }
@@ -40,17 +41,33 @@ namespace ask_detail {
         const bool maxUnlimited = isUnlimited(numMax);
 
         if (!(std::cin >> response)) {
+            // Reject non-numeric input, clear the stream, and let ask retry.
             recoverFromInputFailure();
             const auto typeName = getCleanTypeName(typeid(T).name());
             log("Please input a valid " + typeName + ": ", false, width);
             return false;
         }
 
-        const bool outsideBounds = !minUnlimited && !maxUnlimited
-            ? !isBetween(response, numMin, numMax)
-            : (!minUnlimited && isLessThan(response, numMin)) ||
-              (!maxUnlimited && isGreaterThan(response, numMax));
+        bool outsideBounds = false;
+        if constexpr (
+            !std::is_same_v<std::decay_t<Min>, bool> &&
+            !std::is_same_v<std::decay_t<Max>, bool>
+        ) {
+            // When both limits are numeric, check the full inclusive range.
+            outsideBounds = !isBetween(response, numMin, numMax);
+        } else {
+            if constexpr (!std::is_same_v<std::decay_t<Min>, bool>) {
+                // Check the minimum only when it was not disabled with false.
+                outsideBounds = isLessThan(response, numMin);
+            }
+            if constexpr (!std::is_same_v<std::decay_t<Max>, bool>) {
+                // Check the maximum only when it was not disabled with false.
+                outsideBounds =
+                    outsideBounds || isGreaterThan(response, numMax);
+            }
+        }
         if (outsideBounds) {
+            // Discard the rest of the rejected input before prompting again.
             discardRemainingInput();
             std::string rangeError = "Value must be";
             if (!minUnlimited) {
@@ -108,16 +125,22 @@ T askNum(
 ) {
     const bool minUnlimited = ask_detail::isUnlimited(numMin);
     const bool maxUnlimited = ask_detail::isUnlimited(numMax);
-    if (!minUnlimited && !maxUnlimited &&
-        isGreaterThan(numMin, numMax)) {
-        throw std::invalid_argument(
-            std::format(
-                "Numeric minimum cannot exceed maximum. Question: {}. Min: {}, Max: {}",
-                question,
-                numMin,
-                numMax
-            )
-        );
+    if constexpr (
+        !std::is_same_v<std::decay_t<Min>, bool> &&
+        !std::is_same_v<std::decay_t<Max>, bool>
+    ) {
+        // Only two numeric limits can form a range that might be reversed.
+        if (isGreaterThan(numMin, numMax)) {
+            // A minimum above the maximum leaves no valid input value.
+            throw std::invalid_argument(
+                std::format(
+                    "Numeric minimum cannot exceed maximum. Question: {}. Min: {}, Max: {}",
+                    question,
+                    numMin,
+                    numMax
+                )
+            );
+        }
     }
 
     auto reader = [&](T& response) {
