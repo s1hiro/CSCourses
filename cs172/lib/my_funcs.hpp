@@ -20,8 +20,8 @@
         void log() defined L17, but logic stored in lib/log.cpp. 
 */
 
-template <typename T>
-std::string separateBy(const std::vector<T>& inpList, const std::string& separator);
+template <typename Sequence>
+std::string separateBy(const Sequence& inpList, const std::string& separator);
 
 template <typename T>
 void writeFile(const std::filesystem::path target_dir, const T content);
@@ -30,11 +30,11 @@ int log(std::string text, bool newLine = false, size_t width = 80);
 
 // This overload is the general one that accepts a validated answer list.
 template <typename T, typename... VariantTypes>
-T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, double numMinimum = 0);
+T ask(std::string question, size_t width, std::vector<std::variant<VariantTypes...>> answerList, bool newLine = false, T numMinimum = T{});
 
 // This is the lightweight fallback used when there is no answerList to validate.
 template <typename T>
-T ask(std::string question, size_t width, bool newLine = false, double numMinimum = 0) {
+T ask(std::string question, size_t width, bool newLine = false, T numMinimum = T{}) {
     return ask<T, std::string>(question, width, std::vector<std::variant<std::string>>{}, newLine, numMinimum);
 }
 
@@ -73,6 +73,9 @@ inline std::string centerString(std::string text, int width, std::string emptySp
 	return spacing + text + spacing;
 }
 
+#include "./arithmetic/isLessThan.tpp"
+#include "./arithmetic/isGreaterThan.tpp"
+#include "./arithmetic/isBetween.tpp"
 #include "./ask.tpp"
 #include "./writeFile.tpp"
 #include "./separateBy.tpp"

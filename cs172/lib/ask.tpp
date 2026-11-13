@@ -1,144 +1,175 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <variant>
-#include <type_traits>
-#include <typeinfo>
 #include <format>
-#include "my_funcs.hpp"
+#include <iostream>
+#include <limits>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
+
+namespace ask_detail {
+    inline void discardRemainingInput() {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
+    inline void recoverFromInputFailure() {
+        if (std::cin.bad()) {
+            throw std::runtime_error("Input stream failed.");
+        }
+        if (std::cin.eof()) {
+            throw std::runtime_error("Input ended before a valid response was entered.");
+        }
+        std::cin.clear();
+        discardRemainingInput();
+    }
+
+    template <typename>
+    inline constexpr bool unsupportedAskType = false;
+
+    /**
+     * @brief Runs the shared prompt and validation steps for an ask function.
+     *
+     * The type-specific reader handles how one value is read. This function
+     * handles the parts shared by all types: showing the question, retrying after
+     * invalid input, and checking an optional list of allowed answers.
+     *
+     * @tparam T The type of value returned to the caller.
+     * @tparam Reader A function that reads one value and reports success or failure.
+     * @tparam VariantTypes The types that may appear in the allowed-answer list.
+     * @param question The message shown before input is read.
+     * @param width The display width passed to the logging function.
+     * @param answerList Optional answers the user is allowed to enter.
+     * @param newLine Whether to put a newline after the question.
+     * @param reader The type-specific function used to read the response.
+     * @return The response after it has been read and validated.
+     *
+     * @note A width of 0 is rejected and returns a default-initialized value.
+     *       If the input stream ends or fails, a std::runtime_error is thrown.
+     **/
+    template <typename T, typename Reader, typename... VariantTypes>
+    T runAsk(
+        std::string question,
+        size_t width,
+        std::vector<std::variant<VariantTypes...>> answerList,
+        bool newLine,
+        Reader reader
+    ) {
+        if (width == 0) {
+            std::cerr << "Please return a width greater than 0!" << std::endl;
+            return T{};
+        }
+
+        log(question, newLine, width);
+
+        T response{};
+        while (true) {
+            //this loop is for answerlist checking
+
+            if (!reader(response)) continue;
+
+            if (answerList.empty()) break;
+
+            bool foundMatch = false;
+            for (const auto& answer : answerList) {
+                std::visit([&](const auto& value) {
+                   //^ runs lambda on curr val stored in a variant (answer from answerList)
+
+                    using VariantType = std::decay_t<decltype(value)>;
+                    //^ alias for "answer"'s type
+
+                    if constexpr (std::is_same_v<T, VariantType>) {
+                        foundMatch = response == value;
+                    } else if constexpr (
+                        std::is_same_v<T, std::string> &&
+                        std::is_same_v<VariantType, int>
+                    ) {
+                        foundMatch = response == std::to_string(value);
+                    }
+                }, answer);
+                 //^ ANSWER PASSED HERE FROM LINE L74
+
+                if (foundMatch) break;
+            }
+
+            if (foundMatch) break;
+            
+            //at this point, no match has been found through common
+            //translation of str to int, so we 
+
+            if constexpr (!std::is_same_v<T, std::string>) {
+                discardRemainingInput();
+            }
+
+            std::vector<std::string> formattedAnswers;
+            for (const auto& answer : answerList) {
+                formattedAnswers.push_back(std::visit([](const auto& value) {
+                    return std::format("{}", value);
+                    //format used to account for non-number answers
+                    //eg; to_string(string ...) won't compile but,
+                    //format will
+                }, answer));
+            }
+            log(
+                "Please input one of these answers! " +
+                    separateBy(formattedAnswers, ", ") + ": ",
+                false,
+                width
+            );
+        }
+
+        return response;
+    }
+}
+
+#include "askTypeFuncs/askStr.tpp"
+#include "askTypeFuncs/askNum.tpp"
+#include "askTypeFuncs/askBool.tpp"
 
 /**
- * @brief Safely prompts the user for input and handles strict type validation.
- * 
- * Replaces complex 'std::cin' boilerplate with an automatic, typesafe loop.
- * 
- * @tparam T          The expected data type of the user's response.
- * @param question    The prompt message displayed to the user.
- * @param width       The maximum character width of the screen.
- * @param answerList  An optional list of allowed choices to restrict input validation. [Default: {}]
- * @param newLine     Appends a trailing newline to the initial prompt if true. [Default: {}]
- * @param numMinimum  The lowest a number answer can be. [Default: 0]
- * 
- * @return T          The validated, type-matching user input.
- * 
- * @note 
- * - WILL automatically catch, clear, and loop past invalid type entries (e.g., text for an int).
- * @note
- * - WILL reject inputs that are not explicitly present in 'answerList' if a list is provided.
- * @note
- * - WILL NOT accept a screen width of 0 or lower.
+ * @brief Reads a typed response using the shared ask flow.
+ *
+ * This is the general interface used by existing calls such as
+ * @c ask<int>(...). It chooses the string, boolean, or arithmetic reader
+ * based on @c T. An optional answer list can restrict which values are accepted.
+ *
+ * @tparam T The type to read, such as int, double, bool, or std::string.
+ * @tparam VariantTypes The types stored in the optional answer list.
+ * @param question The message shown before input is read.
+ * @param width The display width passed to the logging function.
+ * @param answerList Optional allowed answers.
+ * @param newLine Whether to put a newline after the question.
+ * @param numMinimum The lowest accepted value for arithmetic types.
+ * @return The response after it has been read and validated.
  **/
 template <typename T, typename... VariantTypes>
 T ask(
-    std::string question, 
-    size_t width, 
-    std::vector<std::variant<VariantTypes...>> answerList, 
-    bool newLine, 
-    double numMinimum
-) { 
-    if (width <= 0) {
-        std::cerr << "Please return a width greater than 0! You input: " << width << std::endl;
-        return T();
-    }
-
-    // Print the question
-    log(question, newLine, width);
-
-    T response;
-    while (true) {
-        // 1. Try to read the user input into type T
+    std::string question,
+    size_t width,
+    std::vector<std::variant<VariantTypes...>> answerList,
+    bool newLine,
+    T numMinimum
+) {
+    auto reader = [&](T& response) {
         if constexpr (std::is_same_v<T, std::string>) {
-            //T must be string because otherwise cpp
-            //can't handle int response typing for you
-
-            //getline(cin >> ws, arg2) == start at the 
-            //next WhiteSpace or newline from the pre-
-            //existing buffer then take cin & save it 
-            //to arg2 
-            std::getline(std::cin >> std::ws, response);
+            return ask_detail::readString(response, width);
+        } else if constexpr (std::is_same_v<T, bool>) {
+            return ask_detail::readBool(response, width);
+        } else if constexpr (std::is_arithmetic_v<T>) {
+            return ask_detail::readNumber(response, width, numMinimum, false);
         } else {
-            std::cin >> response;
+            static_assert(
+                ask_detail::unsupportedAskType<T>,
+                "ask<T> supports strings, booleans, and arithmetic types."
+            );
         }
+    };
 
-        // 2. Check if the type reading failed (e.g., text entered for an int)
-        if (std::cin.fail()) {
-            std::cin.clear(); // Clear the error flag
-            std::cin.ignore(10000, '\n'); // Dump what's left in stream
-            
-            std::string typeError = "Please input a valid " + getCleanTypeName(std::string(typeid(T).name())) + ": ";
-            log(typeError, width);
-            continue; 
-        }
-
-        // 3. If it's a number ...
-        if constexpr (std::is_arithmetic_v<T>) {
-            // If it's less than the required min ...
-            if (response < numMinimum) {
-                std::cin.ignore(10000, '\n');
-                std::string rangeError = "Value cannot be negative! Please enter a number >= 0: ";
-                log(rangeError, width);
-                continue; // Restart loop to prompt again
-            }
-        }
-
-        // 4. If answerList is empty, we don't need to validate specific choices
-        if (answerList.empty()) {
-            break; 
-        }
-
-        bool foundMatch = false;
-        // 5. Value validation: Use std::visit to see if 'response' matches the active variant type
-        // 5.1. Loop through every variant item inside your answerList vector
-        for (const auto& var : answerList) {
-            // 5.2. Open the variant box 'var' using std::visit
-            std::visit([&](auto arg) {
-               //^func to inspect variants & exec code based on it                
-               //[&] scopes all used local vars to this visit's lambda fn()
-
-                // 5.3. Extract the exact datatype name of whatever is currently inside 'arg'
-                using VariantType = std::decay_t<decltype(arg)>;
-                                       //^cleans type names eg; int& -> int
-                                       //decltyp() = "get me this thing's type"
-
-                // 5.4. Case A: Is the type the user entered (T) identical to the type inside the variant?
-                if constexpr (std::is_same_v<T, VariantType>) {
-                    // Since they are the exact same type, compare them directly!
-                    if (response == arg) {
-                        foundMatch = true;
-                    }
-                } 
-
-                // 5.5. Case B: Did the user type a string, but the variant holds an integer?
-                else if constexpr (std::is_same_v<T, std::string> && std::is_same_v<VariantType, int>) {
-                    // Convert the integer 'arg' to a string so they can be safely compared!
-                    if (response == std::to_string(arg)) {
-                        foundMatch = true;
-                    }
-                }
-            }, var); // End of std::visit
-
-            // 5.6. If we found a match, stop looking and break out of the vector loop
-            if (foundMatch) break;
-        }
-
-        if (foundMatch) break; // Exits the 'while(true)' loop because a valid answer was found!
-        
-
-        if constexpr (!std::is_same_v<T, std::string>) {
-            std::cin.ignore(10000, '\n');
-        }
-
-        // 6. Build the error string cleanly by extracting values from variants using std::visit
-        std::vector<std::string> formattedAnswers;
-        for (const auto& answer : answerList) {
-            formattedAnswers.push_back(std::visit([](const auto& value) {
-                return std::format("{}", value);
-            }, answer));
-        }
-        std::string errorMsg = "Please input one of these answers! " + separateBy(formattedAnswers, ", ") + ": ";
-
-        log(errorMsg, false, width);
-    }
-
-    return response;
+    return ask_detail::runAsk<T>(
+        question,
+        width,
+        answerList,
+        newLine,
+        reader
+    );
 }
