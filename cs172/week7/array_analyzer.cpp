@@ -16,10 +16,20 @@ int main() {
     for(size_t i = 0; i < SIZE; i++) {
         int n = scores[i];
         total += n;
-        if(n >= 70) scores70OrAbove++;
+        if(n >= 70) {
+            // Count scores that meet the 70-point threshold.
+            scores70OrAbove++;
+        }
         if(i != 0) {
-            if(n > high) high = n;
-            if(n < low) low = n;
+            // Skip the first score when checking later values against the bounds.
+            if(n > high) {
+                // Replace the highest value when this score is larger.
+                high = n;
+            }
+            if(n < low) {
+                // Replace the lowest value when this score is smaller.
+                low = n;
+            }
         }
     }
 
@@ -39,12 +49,17 @@ int main() {
     for(size_t i = 0; i < SIZE; i++) {
         int currScore = scores[i];
         if(currScore == search) {
+            // Add only scores equal to the user's search value.
             if(matches.size() == 0) {
+                // Show the position of the first matching score.
                 log("First match at position " + i, true);
             } 
             matches.emplace_back(i);
         }
     }
 
-    if (matches.size() > 0) log("All matches: " + separateBy(matches, ", "), true);
+    if (matches.size() > 0) {
+        // Print the match list only when at least one score was found.
+        log("All matches: " + separateBy(matches, ", "), true);
+    }
 }

@@ -87,10 +87,12 @@ int main() {
 	int count = 0;
 	while(keepOrdering != 0) {
 		if(count < 1) {
+			// The first item gets the initial-order prompt.
 			log("What would you like to order? ");
 		} else {
 			log("Would you like anything else? ");
 			if(count % 5 == 0) {
+				// Refresh the menu after every five items.
 				log("Here is our menu again.", true);
 				printThinBorder();
 				menu();
@@ -101,6 +103,7 @@ int main() {
 		cin >> tempInp;
 
 		if(tempInp == "No" || tempInp == "no" || tempInp == "n" || tempInp == "N") {
+			// Any accepted spelling of "no" ends the ordering loop.
 			keepOrdering = 0;
 			break;
 		} else {
@@ -161,6 +164,7 @@ int main() {
 	cin >> tempInput;
 	printThinBorder();
 	if(tempInput == "No" || tempInput == "no" || tempInput == "n" || tempInput == "N") {
+		// If the customer declines a tip, leave the tip amount at zero.
 		log("Thank you for considering it.", true);
 	} else {
 		tipAmount = totalExpense * (stod(tempInput) / 100);

@@ -25,6 +25,7 @@ int main() {
         action = ask<string>("Please type one of the following!\n(1)Record Sales\n(2)View sales report\n(3)Exit\n", width, actions);
 
         if(action == "1" || action == "Record Sales") {
+            // Either the menu number or its label starts a sales entry.
             int numOfTransactions = ask<int>("How many transactions will you be recording? ", width, false, -1);
             string content;
 
@@ -40,12 +41,14 @@ int main() {
         } 
         
         if(action == "2" || action == "View sales report") {
+            // Either the menu number or its label opens the sales report.
             vector<double> sales = {};
             ifstream salesFile(path / "output.txt");
             string line;
             size_t count = 0;
 
             if(salesFile.peek() == EOF) {
+                // An empty file has no sales to report.
                 log("There are no sales logged.", true);
                 continue;
             }

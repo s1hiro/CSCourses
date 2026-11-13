@@ -31,6 +31,7 @@ bool isBetween(Value value, Min min, Max max) {
         std::is_floating_point_v<Min> ||
         std::is_floating_point_v<Max>
     ) {
+        // NaN cannot be ordered, so it is never considered between two bounds.
         if (std::isnan(static_cast<long double>(value)) ||
             std::isnan(static_cast<long double>(min)) ||
             std::isnan(static_cast<long double>(max))) {

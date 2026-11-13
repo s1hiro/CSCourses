@@ -8,14 +8,15 @@
 template <typename T>
 void writeFile(const std::filesystem::path target_dir, const T content) {
     if (!std::filesystem::exists(target_dir)) {
+        // Do not try to write into a directory that does not exist.
         std::cerr << "Error: The file " << target_dir << " does not exist.\n";
         return;
     }
 
     std::filesystem::path file_path = target_dir / "output.txt";
 
-    // Check if the user passed an empty string to clear the file
     if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, const char*>) {
+        // Only string content can use an empty value to clear the file.
         if (content == "") {
             // Opening with trunc instantly empties the file and closes automatically on the same line
             std::ofstream(file_path, std::ios::trunc);

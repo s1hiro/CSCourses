@@ -14,8 +14,8 @@
  * - Does NOT handle width = 0 case.
  */
 std::string wrapText(std::string text, size_t width) {
-    // If the entire text fits on one line, return it as-is
     if (text.length() <= width) {
+        // The text already fits, so no wrapping is needed.
         return text;
     }
 
@@ -23,8 +23,8 @@ std::string wrapText(std::string text, size_t width) {
     while (start + width < text.length()) {
         size_t targetIndex = start + width;
 
-        // If it's already a space, swap it to a newline
         if (text[targetIndex] == ' ') {
+            // Use the space at the width limit as the line break.
             text[targetIndex] = '\n';
             start = targetIndex + 1;
         }
@@ -35,14 +35,13 @@ std::string wrapText(std::string text, size_t width) {
                 spaceIndex--;
             }
 
-            // If a space was found, break there
             if (spaceIndex > start) {
+                // Break at the nearest earlier space to avoid splitting a word.
                 text[spaceIndex] = '\n';
                 start = spaceIndex + 1;
             }
-            // If NO space was found, the word is longer than the width.
-            // Force a break at the maximum width to avoid an infinite loop.
             else {
+                // No space fits, so split the long word to keep making progress.
                 text.insert(targetIndex, "\n");
                 start = targetIndex + 1;
             }

@@ -4,6 +4,7 @@
 namespace ask_detail {
     inline bool readString(std::string& response, size_t width) {
         if (std::getline(std::cin >> std::ws, response)) {
+            // getline succeeded, so the complete response line is available.
             return true;
         }
 

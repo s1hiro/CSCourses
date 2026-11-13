@@ -5,16 +5,19 @@ namespace ask_detail {
     inline bool readBool(bool& response, size_t width) {
         std::string input;
         if (!(std::cin >> input)) {
+            // If no token could be read, recover the stream and ask again.
             recoverFromInputFailure();
             log("Please input true, false, 1, or 0: ", false, width);
             return false;
         }
 
         if (input == "true" || input == "1") {
+            // Both accepted true spellings represent the same value.
             response = true;
             return true;
         }
         if (input == "false" || input == "0") {
+            // Both accepted false spellings represent the same value.
             response = false;
             return true;
         }

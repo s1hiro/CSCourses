@@ -70,6 +70,7 @@ int main() {
             players[1].second == players[2].second ||
             players[0].second == players[2].second
         ) {
+            // Any matching pair means the players are tied for the top score.
             log("There was a tie! No champions.", true);
         } else { 
             showChampion(players[0].first);
