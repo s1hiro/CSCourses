@@ -23,10 +23,14 @@ template <typename Left, typename Right>
 bool isLessThan(Left left, Right right) {
     if constexpr (
         std::is_integral_v<Left> &&
-        std::is_integral_v<Right>
+        std::is_integral_v<Right> &&
+        !type_checker_detail::isCharacterType<Left> &&
+        !type_checker_detail::isCharacterType<Right>
     ) {
+        // cmp_less safely compares signed and unsigned integers.
         return std::cmp_less(left, right);
     } else {
+        // Character and floating-point values use a common numeric type instead.
         return static_cast<long double>(left) <
                static_cast<long double>(right);
     }

@@ -53,8 +53,8 @@ inline std::string getCleanTypeName(const std::string& mangledName) {
     // __cxa_demangle returns a raw C-string allocated with malloc
     char* demangled = abi::__cxa_demangle(mangledName.c_str(), nullptr, nullptr, &status);
     
-    // If status is 0, the translation succeeded
     if (status == 0 && demangled != nullptr) {
+        // Use the readable type name only when demangling succeeded.
         std::string result(demangled);
         std::free(demangled); // Clean up the memory allocated by the system
         return result;
@@ -73,6 +73,10 @@ inline std::string centerString(std::string text, int width, std::string emptySp
 	return spacing + text + spacing;
 }
 
+#include "./typeCheckers/isCharacter.tpp"
+#include "./typeCheckers/isString.tpp"
+#include "./typeCheckers/isNumber.tpp"
+#include "./typeCheckers/isBoolean.tpp"
 #include "./arithmetic/isLessThan.tpp"
 #include "./arithmetic/isGreaterThan.tpp"
 #include "./arithmetic/isBetween.tpp"

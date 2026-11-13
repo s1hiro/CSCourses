@@ -15,9 +15,11 @@ namespace ask_detail {
 
     inline void recoverFromInputFailure() {
         if (std::cin.bad()) {
+            // A broken stream cannot recover by asking for another response.
             throw std::runtime_error("Input stream failed.");
         }
         if (std::cin.eof()) {
+            // There is no more input available to retry.
             throw std::runtime_error("Input ended before a valid response was entered.");
         }
         std::cin.clear();
@@ -66,38 +68,82 @@ namespace ask_detail {
         while (true) {
             //this loop is for answerlist checking
 
-            if (!reader(response)) continue;
+            if (!reader(response)) {
+                // The type-specific reader rejected this input, so try again.
+                continue;
+            }
 
-            if (answerList.empty()) break;
+            if (answerList.empty()) break; // With no choices, any valid response is allowed.
 
             bool foundMatch = false;
             for (const auto& answer : answerList) {
+                const bool answerIsCharacter = isCharacter(answer);
+                const bool answerIsString = isString(answer);
+                const bool answerIsNumber = isNumber(answer);
+                const bool answerIsBoolean = isBoolean(answer);
+
                 std::visit([&](const auto& value) {
                    //^ runs lambda on curr val stored in a variant (answer from answerList)
 
                     using VariantType = std::decay_t<decltype(value)>;
                     //^ alias for "answer"'s type
 
-                    if constexpr (std::is_same_v<T, VariantType>) {
-                        foundMatch = response == value;
-                    } else if constexpr (
-                        std::is_same_v<T, std::string> &&
-                        std::is_same_v<VariantType, int>
-                    ) {
-                        foundMatch = response == std::to_string(value);
+                    if (answerIsCharacter) {
+                        // Character choices are separate from strings and numbers.
+                        if constexpr (
+                            std::is_same_v<T, VariantType> &&
+                            type_checker_detail::isCharacterType<VariantType>
+                        ) {
+                            // Compare characters only when the requested type matches.
+                            foundMatch = response == value;
+                        } else if constexpr (
+                            std::is_same_v<T, std::string> &&
+                            std::is_same_v<VariantType, char>
+                        ) {
+                            // A char choice can also match its one-character string.
+                            foundMatch = response == std::format("{}", value);
+                        }
+                    } else if (answerIsString) {
+                        // String choices match only string responses.
+                        if constexpr (
+                            std::is_same_v<T, std::string> &&
+                            std::is_same_v<VariantType, std::string>
+                        ) {
+                            foundMatch = response == value;
+                        }
+                    } else if (answerIsNumber) {
+                        // Number choices match the same numeric type or its text form.
+                        if constexpr (std::is_same_v<T, VariantType>) {
+                            foundMatch = response == value;
+                        } else if constexpr (
+                            std::is_same_v<T, std::string> &&
+                            std::is_arithmetic_v<VariantType> &&
+                            !std::is_same_v<VariantType, bool>
+                        ) {
+                            foundMatch = response == std::format("{}", value);
+                        }
+                    } else if (answerIsBoolean) {
+                        // Boolean choices match only boolean responses.
+                        if constexpr (
+                            std::is_same_v<T, bool> &&
+                            std::is_same_v<VariantType, bool>
+                        ) {
+                            foundMatch = response == value;
+                        }
                     }
                 }, answer);
                  //^ ANSWER PASSED HERE FROM LINE L74
 
-                if (foundMatch) break;
+                if (foundMatch) break; // Stop checking choices after a match.
             }
 
-            if (foundMatch) break;
+            if (foundMatch) break; // A match lets the input loop finish.
             
             //at this point, no match has been found through common
             //translation of str to int, so we 
 
             if constexpr (!std::is_same_v<T, std::string>) {
+                // Numeric extraction can leave extra text on the current line.
                 discardRemainingInput();
             }
 
@@ -152,10 +198,13 @@ T ask(
 ) {
     auto reader = [&](T& response) {
         if constexpr (std::is_same_v<T, std::string>) {
+            // Strings need the line-based reader so spaces are preserved.
             return ask_detail::readString(response, width);
         } else if constexpr (std::is_same_v<T, bool>) {
+            // Booleans have their own accepted words and digits.
             return ask_detail::readBool(response, width);
         } else if constexpr (std::is_arithmetic_v<T>) {
+            // Other arithmetic types use numeric parsing and range checks.
             return ask_detail::readNumber(response, width, numMinimum, false);
         } else {
             static_assert(
